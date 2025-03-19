@@ -1,0 +1,45 @@
+/* 2. Join.css */
+.join-container {
+    max-width: 500px;
+    margin: 80px auto;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.join-header {
+    background: #4CAF50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.join-main {
+    padding: 30px 40px;
+}
+
+.join-main .form-control {
+    margin-bottom: 20px;
+}
+
+.join-main label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.join-main input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.join-main .btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+}
