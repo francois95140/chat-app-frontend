@@ -94,3 +94,40 @@
 .chat-form-container button {
     border-radius: 0 4px 4px 0;
 }
+
+.typing-indicator {
+    padding: 8px;
+    margin-bottom: 10px;
+    font-style: italic;
+    color: #777;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* Animation des points de suspension (optionnel) */
+.typing-indicator::after {
+    content: "...";
+    display: inline-block;
+    animation: dots 1.5s infinite;
+    width: 12px;
+    text-align: left;
+}
+
+@keyframes dots {
+    0%, 20% { content: "."; }
+    40% { content: ".."; }
+    60%, 100% { content: "..."; }
+}

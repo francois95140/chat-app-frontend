@@ -9,8 +9,10 @@ function Chat() {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [users, setUsers] = useState([]);
+    const [typingUsers, setTypingUsers] = useState([]);
     const socketRef = useRef();
     const messagesEndRef = useRef(null);
+    const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
         // Rediriger si l'utilisateur n'a pas de nom ou de room
@@ -53,8 +55,29 @@ function Chat() {
             setUsers(roomUsers);
         });
 
+        // Écouter les événements de frappe
+        socketRef.current.on('userTyping', (data) => {
+            if (data.username !== location.state.username) {
+                setTypingUsers((prevTypingUsers) => {
+                    if (!prevTypingUsers.includes(data.username)) {
+                        return [...prevTypingUsers, data.username];
+                    }
+                    return prevTypingUsers;
+                });
+            }
+        });
+
+        socketRef.current.on('userStoppedTyping', (data) => {
+            setTypingUsers((prevTypingUsers) =>
+                prevTypingUsers.filter((username) => username !== data.username)
+            );
+        });
+
         // Nettoyer à la déconnexion
         return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
             socketRef.current.disconnect();
         };
     }, [location, navigate]);
@@ -64,12 +87,36 @@ function Chat() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // Gérer l'événement de frappe
+    const handleTyping = () => {
+        // Émettre l'événement "utilisateur en train de taper"
+        socketRef.current.emit('typing');
+
+        // Effacer tout timeout précédent
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Définir un nouveau timeout pour arrêter de taper après 3 secondes
+        typingTimeoutRef.current = setTimeout(() => {
+            socketRef.current.emit('stopTyping');
+        }, 3000);
+    };
+
     // Envoyer un message
     const sendMessage = (e) => {
         e.preventDefault();
         if (message) {
+            // Envoyer le message
             socketRef.current.emit('sendMessage', { message });
+            // Réinitialiser le message
             setMessage('');
+            // Arrêter l'événement "en train de taper"
+            socketRef.current.emit('stopTyping');
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+                typingTimeoutRef.current = null;
+            }
         }
     };
 
@@ -100,6 +147,13 @@ function Chat() {
                             <p className="text">{msg.message}</p>
                         </div>
                     ))}
+                    {typingUsers.length > 0 && (
+                        <div className="typing-indicator">
+                            {typingUsers.length === 1
+                                ? `${typingUsers[0]} est en train d'écrire...`
+                                : `${typingUsers.join(', ')} sont en train d'écrire...`}
+                        </div>
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
             </main>
@@ -110,7 +164,10 @@ function Chat() {
                         type="text"
                         placeholder="Entrez votre message..."
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={(e) => {
+                            setMessage(e.target.value);
+                            handleTyping();
+                        }}
                         required
                         autoComplete="off"
                     />
